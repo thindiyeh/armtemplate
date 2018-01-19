@@ -1,0 +1,59 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sqlServerName": {
+            "type": "string",
+            "metadata": {
+                "description": "The SQL Server name."
+            }
+        },
+        "sqldatabaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "The SQL Databases names."
+            }
+        },
+        "sqlServerSecondaryName": {
+            "type": "string",
+            "metadata": {
+                "description": "The secondary BCP sql server name"
+            }
+        },
+        "failoverGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "The failover group name"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers/failoverGroups",
+            "apiVersion": "2015-05-01-preview",
+            "name": "[concat(parameters('sqlServerName'), '/', parameters('failoverGroupName'))]",
+            "properties": {
+                "readWriteEndpoint": {
+                    "failoverPolicy": "Automatic",
+                    "failoverWithDataLossGracePeriodMinutes": 60
+                },
+                "readOnlyEndpoint": {
+                    "failoverPolicy": "Disabled"
+                },
+                "partnerServers": [
+                    {
+                        "id": "[resourceId('Microsoft.Sql/servers/', parameters('sqlServerSecondaryName'))]"
+                    }
+                ],
+                "databases": [
+                    "[resourceId('Microsoft.Sql/servers/databases', parameters('sqlServerName'), parameters('sqldatabaseName'))]"
+                ]
+            },
+            "dependsOn": [
+            ]
+        }
+    ],
+    "outputs": {
+    }
+}
